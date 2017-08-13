@@ -2,6 +2,7 @@ from gmail import Gmail
 from message import Message
 from threading import Thread
 from ftp import FTPServer, FTPSession
+from configuration import Configuration
 
 class Server:
 
@@ -28,5 +29,10 @@ class Server:
         Thread(target=self.forward_received_images_on_smtp).start()
 
 if __name__ == '__main__':
-    server = Server(address='minkbo.littlist.no', port=1337, credentials=('username', 'password'), forward=True)
+    server = Server(
+        address=Configuration.address,
+        port=Configuration.port,
+        credentials=(Configuration.ftp_username, Configuration.ftp_password),
+        forward=True
+    )
     server.listen()
