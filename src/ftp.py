@@ -4,9 +4,9 @@ from socketserver import TCPServer, BaseRequestHandler, ThreadingMixIn
 
 class FTPServer:
 
-    def __init__(self, credentials, port=None):
+    def __init__(self, credentials, address='0.0.0.0', port=0):
         self.credentials = credentials
-        self.server = ThreadedTCPServer(('0.0.0.0', port or 0), FTPSession)
+        self.server = ThreadedTCPServer((address, port), FTPSession)
         self.address, self.port = self.server.socket.getsockname()
 
     @property
@@ -18,9 +18,10 @@ class FTPServer:
 
 class ThreadedTCPServer(ThreadingMixIn, TCPServer):
 
-    def __init__(self, *args):
+    def __init__(self, address, handler):
+        self.address = address
         self.images = []
-        super().__init__(*args)
+        super().__init__(address, handler)
 
 class FTPSession(BaseRequestHandler):
 
@@ -28,8 +29,6 @@ class FTPSession(BaseRequestHandler):
         self.WELCOME()
         while True:
             operation, message = self.get_latest_command()
-            if operation and message:
-                print(operation, message)
             if not operation: continue
             method = getattr(self, operation)
             method(message)
@@ -45,7 +44,8 @@ class FTPSession(BaseRequestHandler):
 
     def start_data_channel(self):
         self.servsock = socket(AF_INET, SOCK_STREAM)
-        self.servsock.bind(('0.0.0.0', 0))
+        ip, port = self.server.address
+        self.servsock.bind((ip, 0))
         self.servsock.listen(1)
         return self.servsock.getsockname()
 
@@ -100,6 +100,6 @@ class FTPSession(BaseRequestHandler):
         #self.servsock.close()
 
 if __name__ == '__main__':
-    server = FTPServer(port=1337, credentials=('username', 'password'))
+    server = FTPServer(address='minkbo.littlist.no', port=1337, credentials=('username', 'password'))
     print(server.server.socket.getsockname())
     server.listen()
