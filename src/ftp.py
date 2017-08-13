@@ -74,7 +74,7 @@ class FTPSession(BaseRequestHandler):
         self.respond(200, 'Sure')
 
     def CWD(self, message):
-        self.respond(200, 'Sure')
+        self.respond(250, 'Sure, you are in the right dir.')
 
     def MKD(self, message):
         self.respond(200, 'Sure')
