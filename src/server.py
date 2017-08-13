@@ -7,6 +7,7 @@ class Server:
     def __init__(self, credentials, address='0.0.0.0', port=0, forward=False):
         self.forward = forward
         self.credentials = credentials
+        self.gmail = Gmail()
         self.ftp_server = FTPServer((address, port), FTPSession)
         self.address, self.port = self.ftp_server.socket.getsockname()
 
@@ -16,8 +17,10 @@ class Server:
 
     def forward_received_images_on_smtp(self):
         while self.forward:
-            image = self.images.get()
-            print(image)
+            message = Message('Motion', self.images.get())
+            self.gmail.connect()
+            self.gmail.send(message)
+            self.gmail.disconnect()
 
     def listen(self):
         Thread(target=self.ftp_server.serve_forever).start()
