@@ -1,4 +1,5 @@
 from gmail import Gmail
+from message import Message
 from threading import Thread
 from ftp import FTPServer, FTPSession
 
