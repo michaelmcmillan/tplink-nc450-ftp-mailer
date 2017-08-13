@@ -4,14 +4,16 @@ from socketserver import TCPServer, BaseRequestHandler, ThreadingMixIn
 
 class FTPServer(ThreadingMixIn, TCPServer):
 
-    def __init__(self, address, handler):
+    def __init__(self, credentials, address, handler):
         self.images = Queue()
         self.address = address
+        self.credentials = credentials
         super().__init__(address, handler)
 
 class FTPSession(BaseRequestHandler):
 
     def handle(self):
+        self.authenticated = False
         self.WELCOME()
         while True:
             operation, message = self.get_latest_command()
@@ -48,10 +50,16 @@ class FTPSession(BaseRequestHandler):
         self.respond(220, 'Welcome!')
 
     def USER(self, message):
-        self.respond(331, 'Provide password.')
+        username, password = self.server.credentials
+        if message == username:
+            self.respond(331, 'Provide password.')
+        else:
+            self.respond(530, 'Fuck off.')
 
     def PASS(self, message):
-        if message == 'password':
+        username, password = self.server.credentials
+        if message == password:
+            self.authenticated = True
             self.respond(230, 'Welcome.')
         else:
             self.respond(530, 'Fuck off.')
@@ -69,6 +77,8 @@ class FTPSession(BaseRequestHandler):
         self.respond(200, 'Sure')
 
     def STOR(self, message):
+        if not self.authenticated:
+            return
         data_channel, address = self.servsock.accept()
         self.respond(150, 'Opening data connection.')
         image = self.drain_socket(data_channel)
@@ -77,6 +87,8 @@ class FTPSession(BaseRequestHandler):
         data_channel.close()
 
     def PASV(self, message):
+        if not self.authenticated:
+            return
         ip, port = self.start_data_channel()
         self.respond(227, 'Entering Passive Mode (%s,%u,%u).' %
             (','.join(ip.split('.')), port >> 8&0xFF, port & 0xFF))

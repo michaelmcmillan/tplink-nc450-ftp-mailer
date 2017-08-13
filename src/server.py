@@ -8,9 +8,8 @@ class Server:
 
     def __init__(self, credentials, address='0.0.0.0', port=0, forward=False):
         self.forward = forward
-        self.credentials = credentials
         self.gmail = Gmail()
-        self.ftp_server = FTPServer((address, port), FTPSession)
+        self.ftp_server = FTPServer(credentials, (address, port), FTPSession)
         self.address, self.port = self.ftp_server.socket.getsockname()
 
     @property
