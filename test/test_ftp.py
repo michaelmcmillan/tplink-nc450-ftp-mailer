@@ -1,19 +1,19 @@
 from unittest import TestCase
-from ftp import FTPServer
+from server import Server
 from ftplib import FTP as FTPClient
 
 class FTPLogin(TestCase):
 
     def test_should_connect_given_correct_credentials(self):
         client = FTPClient()
-        server = FTPServer(credentials=('username', 'password'))
+        server = Server(credentials=('username', 'password'))
         server.listen()
         client.connect(server.address, server.port)
         client.login('username', 'password')
 
     def test_should_not_connect_given_incorrect_credentials(self):
         client = FTPClient()
-        server = FTPServer(credentials=('username', 'password'))
+        server = Server(credentials=('username', 'password'))
         server.listen()
         client.connect(server.address, server.port)
         with self.assertRaisesRegex(Exception, 'Fuck off'):
@@ -22,7 +22,7 @@ class FTPLogin(TestCase):
 class FTPList(TestCase):
 
     def test_should_upload_image(self):
-        server = FTPServer(credentials=('username', 'password'))
+        server = Server(credentials=('username', 'password'))
         server.listen()
 
         client = FTPClient()
@@ -30,10 +30,10 @@ class FTPList(TestCase):
         client.login('username', 'password')
         client.storbinary('STOR snapshot.jpg', open('test/snapshot.jpg', 'rb'))
 
-        self.assertEqual(len(server.images), 1)
+        self.assertEqual(server.images.qsize(), 1)
 
     def test_should_upload_two_images_from_two_connections(self):
-        server = FTPServer(credentials=('username', 'password'))
+        server = Server(credentials=('username', 'password'))
         server.listen()
 
         first_client = FTPClient()
@@ -47,4 +47,4 @@ class FTPList(TestCase):
         first_client.quit()
         second_client.quit()
 
-        self.assertEqual(len(server.images), 2)
+        self.assertEqual(server.images.qsize(), 2)

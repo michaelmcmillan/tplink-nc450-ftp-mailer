@@ -1,26 +1,12 @@
-from threading import Thread
+from queue import Queue
 from socket import socket, AF_INET, SOCK_STREAM
 from socketserver import TCPServer, BaseRequestHandler, ThreadingMixIn
 
-class FTPServer:
-
-    def __init__(self, credentials, address='0.0.0.0', port=0):
-        self.credentials = credentials
-        self.server = ThreadedTCPServer((address, port), FTPSession)
-        self.address, self.port = self.server.socket.getsockname()
-
-    @property
-    def images(self):
-        return self.server.images
-
-    def listen(self):
-        Thread(target=self.server.serve_forever).start()
-
-class ThreadedTCPServer(ThreadingMixIn, TCPServer):
+class FTPServer(ThreadingMixIn, TCPServer):
 
     def __init__(self, address, handler):
+        self.images = Queue()
         self.address = address
-        self.images = []
         super().__init__(address, handler)
 
 class FTPSession(BaseRequestHandler):
@@ -86,7 +72,7 @@ class FTPSession(BaseRequestHandler):
         data_channel, address = self.servsock.accept()
         self.respond(150, 'Opening data connection.')
         image = self.drain_socket(data_channel)
-        self.server.images.append(image) 
+        self.server.images.put(image)
         self.respond(226, 'Transfer complete.')
         data_channel.close()
 
@@ -97,9 +83,3 @@ class FTPSession(BaseRequestHandler):
 
     def QUIT(self, message):
         self.respond(221, 'Bye.')
-        #self.servsock.close()
-
-if __name__ == '__main__':
-    server = FTPServer(address='minkbo.littlist.no', port=1337, credentials=('username', 'password'))
-    print(server.server.socket.getsockname())
-    server.listen()

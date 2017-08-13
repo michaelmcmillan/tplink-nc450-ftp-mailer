@@ -1,5 +1,9 @@
 from smtplib import SMTP
-from configuration import Configuration
+#from configuration import Configuration
+
+class Configuration:
+    email_username = None
+    email_password = None
 
 class Gmail:
 
