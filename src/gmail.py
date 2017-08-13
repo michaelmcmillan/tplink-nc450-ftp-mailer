@@ -16,7 +16,10 @@ class Gmail:
         self.connection.login(*self.credentials)
 
     def disconnect(self):
-        self.connection.close()
+        try:
+            self.connection.close()
+        except:
+            pass
 
     def send(self, message):
         raw_message = MIMEMultipart()
