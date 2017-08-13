@@ -100,6 +100,6 @@ class FTPSession(BaseRequestHandler):
         #self.servsock.close()
 
 if __name__ == '__main__':
-    server = FTPServer(credentials=('username', 'password'))
+    server = FTPServer(port=1337, credentials=('username', 'password'))
     print(server.server.socket.getsockname())
     server.listen()
