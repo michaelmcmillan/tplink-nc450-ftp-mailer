@@ -23,5 +23,5 @@ class Gmail:
         raw_message['To'] = message.recipient
         raw_message['From'] = message.sender
         raw_message['Subject'] = message.subject
-        raw_message.attach(MIMEImage(message.image, name='image.jpg'))
+        raw_message.attach(MIMEImage(message.image, name='image.jpg', _subtype='jpeg'))
         self.connection.sendmail(message.sender, message.recipient, raw_message.as_string())
