@@ -26,7 +26,7 @@ class Server:
                 batch.append(self.images.get())
             
             if batch:
-                message = Message('Mink Bo: Inngangsdør', batch)
+                message = Message(Configuration.email_subject, batch)
                 self.gmail.connect()
                 self.gmail.send(message)
                 self.gmail.disconnect()
