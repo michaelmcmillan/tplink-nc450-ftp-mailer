@@ -1,3 +1,4 @@
+from time import sleep
 from gmail import Gmail
 from message import Message
 from threading import Thread
@@ -18,7 +19,13 @@ class Server:
 
     def forward_received_images_on_smtp(self):
         while self.forward:
-            message = Message('Motion', self.images.get())
+            sleep(60)
+
+            batch = []
+            while not self.images.empty():
+                batch.append(self.images.get())
+
+            message = Message('Mink Bo: Inngangsdør', batch)
             self.gmail.connect()
             self.gmail.send(message)
             self.gmail.disconnect()

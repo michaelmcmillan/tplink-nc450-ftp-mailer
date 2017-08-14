@@ -1,5 +1,7 @@
 from unittest import TestCase
+from gmail import Gmail
 from server import Server
+from message import Message
 from ftplib import FTP as FTPClient
 
 class FTPLogin(TestCase):
@@ -48,3 +50,13 @@ class FTPList(TestCase):
         second_client.quit()
 
         self.assertEqual(server.images.qsize(), 2)
+
+class TestMail(TestCase):
+
+    @skip('actually connects and tries to send email')
+    def test_can_send_mail_with_a_multiple_image(self):
+        gmail = Gmail()
+        gmail.connect()
+        message = Message('Test', [open('test/snapshot.jpg', 'rb').read()]*50)
+        gmail.send(message)
+        gmail.disconnect()
