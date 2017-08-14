@@ -36,6 +36,7 @@ class Server:
         Thread(target=self.forward_received_images_on_smtp).start()
 
     def quit(self):
+        self.forward = False
         self.ftp_server.shutdown()
 
 if __name__ == '__main__':

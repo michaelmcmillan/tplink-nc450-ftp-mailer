@@ -67,6 +67,7 @@ class FTPList(TestCase):
         second_image.close()
         first_client.quit()
         second_client.quit()
+        server.quit()
         self.assertEqual(server.images.qsize(), 2)
 
 class TestMail(TestCase):

@@ -56,7 +56,14 @@ class FTPSession(BaseRequestHandler):
                 method(*args)
             else:
                 that.respond(530, 'Fuck off.')
+                self.close()
         return wrapper
+
+    def close(self):
+        try:
+            self.servsock.close()
+        except:
+            pass
 
     def WELCOME(self):
         self.respond(220, 'Welcome!')
@@ -67,6 +74,7 @@ class FTPSession(BaseRequestHandler):
             self.correct_username = True
             self.respond(331, 'Provide password.')
         else:
+            self.close()
             self.respond(530, 'Fuck off.')
 
     def PASS(self, message):
@@ -75,6 +83,7 @@ class FTPSession(BaseRequestHandler):
             self.correct_password = True
             self.respond(230, 'Welcome.')
         else:
+            self.close()
             self.respond(530, 'Fuck off.')
 
     @requires_authentication
@@ -109,4 +118,5 @@ class FTPSession(BaseRequestHandler):
             (','.join(ip.split('.')), port >> 8&0xFF, port & 0xFF))
 
     def QUIT(self, message):
+        self.close()
         self.respond(221, 'Bye.')
