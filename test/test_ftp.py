@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest import TestCase, skip
 from gmail import Gmail
 from server import Server
 from message import Message
@@ -20,6 +20,14 @@ class FTPLogin(TestCase):
         client.connect(server.address, server.port)
         with self.assertRaisesRegex(Exception, 'Fuck off'):
             client.login('username', 'drowssap')
+
+    def test_should_not_connect_given_incorrect_username_but_correct_password(self):
+        client = FTPClient()
+        server = Server(credentials=('username', 'password'))
+        server.listen()
+        client.connect(server.address, server.port)
+        with self.assertRaisesRegex(Exception, 'Fuck off'):
+            client.login('emanresu', 'password')
 
 class FTPList(TestCase):
 

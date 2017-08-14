@@ -13,13 +13,16 @@ class FTPServer(ThreadingMixIn, TCPServer):
 class FTPSession(BaseRequestHandler):
 
     def handle(self):
-        self.authenticated = False
+        self.correct_username, self.correct_password = False, False
         self.WELCOME()
         while True:
             operation, message = self.get_latest_command()
             if not operation: continue
             method = getattr(self, operation)
             method(message)
+
+    def is_authenticated(self):
+        return self.correct_username and self.correct_password
 
     def get_latest_command(self):
         data = self.request.recv(1024).decode()
@@ -46,12 +49,22 @@ class FTPSession(BaseRequestHandler):
                 break
         return received_data
 
+    def requires_authentication(method):
+        def wrapper(*args):
+            that, *other_args = args
+            if that.is_authenticated():
+                method(*args)
+            else:
+                that.respond(530, 'Fuck off.')
+        return wrapper
+
     def WELCOME(self):
         self.respond(220, 'Welcome!')
 
     def USER(self, message):
         username, password = self.server.credentials
         if message == username:
+            self.correct_username = True
             self.respond(331, 'Provide password.')
         else:
             self.respond(530, 'Fuck off.')
@@ -59,26 +72,29 @@ class FTPSession(BaseRequestHandler):
     def PASS(self, message):
         username, password = self.server.credentials
         if message == password:
-            self.authenticated = True
+            self.correct_password = True
             self.respond(230, 'Welcome.')
         else:
             self.respond(530, 'Fuck off.')
 
+    @requires_authentication
     def TYPE(self, message):
         self.respond(200, 'Sure')
 
+    @requires_authentication
     def CWD(self, message):
         self.respond(250, 'Sure, you are in the right dir.')
 
+    @requires_authentication
     def SIZE(self, message):
         self.respond(550, 'Nope, no such file.')
 
+    @requires_authentication
     def MKD(self, message):
         self.respond(200, 'Sure')
 
+    @requires_authentication
     def STOR(self, message):
-        if not self.authenticated:
-            return
         data_channel, address = self.servsock.accept()
         self.respond(150, 'Opening data connection.')
         image = self.drain_socket(data_channel)
@@ -86,9 +102,8 @@ class FTPSession(BaseRequestHandler):
         self.respond(226, 'Transfer complete.')
         data_channel.close()
 
+    @requires_authentication
     def PASV(self, message):
-        if not self.authenticated:
-            return
         ip, port = self.start_data_channel()
         self.respond(227, 'Entering Passive Mode (%s,%u,%u).' %
             (','.join(ip.split('.')), port >> 8&0xFF, port & 0xFF))
