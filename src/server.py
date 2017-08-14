@@ -24,11 +24,12 @@ class Server:
             batch = []
             while not self.images.empty():
                 batch.append(self.images.get())
-
-            message = Message('Mink Bo: Inngangsdør', batch)
-            self.gmail.connect()
-            self.gmail.send(message)
-            self.gmail.disconnect()
+            
+            if batch:
+                message = Message('Mink Bo: Inngangsdør', batch)
+                self.gmail.connect()
+                self.gmail.send(message)
+                self.gmail.disconnect()
 
     def listen(self):
         Thread(target=self.ftp_server.serve_forever).start()
